@@ -1,0 +1,24 @@
+# Infrastructure profile — the ONLY file that names concrete technology.
+# The client fills this in. Specs reference logical capabilities; the build step
+# maps them to the services declared here.
+
+database:
+  engine: postgres        # postgres | mysql | sqlserver | ...
+  version: "16"
+
+cloud:
+  provider: aws           # aws | gcp | azure
+  region: us-east-1
+
+compute:
+  model: containers       # serverless | containers | vm
+
+# Logical capabilities the specs may require — declared/toggled here
+object_store: true        # e.g. S3 / GCS / Azure Blob
+managed_queue: false      # e.g. SQS / Pub-Sub / Service Bus
+cache: false              # e.g. ElastiCache / Memorystore
+
+auth_provider: cognito    # cognito | auth0 | entra-id | keycloak | ...
+
+# Optional: pin concrete services to override sensible per-cloud defaults.
+service_overrides: {}
