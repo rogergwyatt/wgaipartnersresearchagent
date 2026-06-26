@@ -19,6 +19,16 @@ Postgres-on-AWS or MySQL-on-GCP with no rework.
 - `outputs/`          — generated inventory, system map, and per-module specs
 
 ## Pipeline
+
+**With a live app URL (no pre-collected notes):**
+1. `/crawl <url>` -> ui-crawler walks the live app, writes output 01
+2. `/discover`    -> discovery agent reads HAR + DB exports, writes outputs 02-03
+                     (skips 01 if already written by /crawl)
+3. `/decompose`   -> architect agent writes the system map (04) + strangler order
+4. `/spec`        -> spec-writer produces one spec per module under outputs/specs/
+5. build          -> Claude Code builds each module in strangler order
+
+**With pre-collected artifacts in inputs/:**
 1. `/discover`  -> discovery agent reads `inputs/`, writes outputs 01-03
 2. `/decompose` -> architect agent writes the system map (04) + strangler order
 3. `/spec`      -> spec-writer produces one spec per module under outputs/specs/
