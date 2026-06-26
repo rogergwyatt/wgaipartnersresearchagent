@@ -1,24 +1,61 @@
 # Infrastructure profile — the ONLY file that names concrete technology.
-# The client fills this in. Specs reference logical capabilities; the build step
-# maps them to the services declared here.
+#
+# Specs reference logical capabilities ("relational store", "object storage", …).
+# This file binds those logical capabilities to real services at build time.
+# One spec set can target any row of options below with no spec edits.
+#
+# CLIENT: fill in the sections marked [REQUIRED]. The rest have sensible defaults.
 
-database:
-  engine: postgres        # postgres | mysql | sqlserver | ...
-  version: "16"
+# ─── Compute ──────────────────────────────────────────────────────────────────
 
 cloud:
-  provider: aws           # aws | gcp | azure
-  region: us-east-1
+  provider: aws           # [REQUIRED] aws | gcp | azure
+  region: us-east-1       # [REQUIRED] e.g. us-east-1 | us-central1 | eastus
 
 compute:
   model: containers       # serverless | containers | vm
 
-# Logical capabilities the specs may require — declared/toggled here
-object_store: true        # e.g. S3 / GCS / Azure Blob
-managed_queue: false      # e.g. SQS / Pub-Sub / Service Bus
-cache: false              # e.g. ElastiCache / Memorystore
+# ─── Data ─────────────────────────────────────────────────────────────────────
 
-auth_provider: cognito    # cognito | auth0 | entra-id | keycloak | ...
+database:
+  engine: postgres        # [REQUIRED] postgres | mysql | sqlserver | aurora-postgres | aurora-mysql
+  version: "16"           # e.g. "16" | "8.0" | "2019"
 
-# Optional: pin concrete services to override sensible per-cloud defaults.
+# ─── Logical capabilities — toggle true/false; build step picks the service ───
+# Specs use these capability names; they never name a concrete service.
+
+object_store:
+  enabled: false          # true → S3 (aws) | GCS (gcp) | Azure Blob (azure)
+
+managed_queue:
+  enabled: false          # true → SQS (aws) | Pub/Sub (gcp) | Service Bus (azure)
+  fifo: false             # true if ordering guarantees are required
+
+cache:
+  enabled: false          # true → ElastiCache/Redis (aws) | Memorystore (gcp) | Azure Cache (azure)
+
+secret_store:
+  enabled: true           # true → Secrets Manager (aws) | Secret Manager (gcp) | Key Vault (azure)
+
+# ─── Identity ─────────────────────────────────────────────────────────────────
+
+auth_provider: cognito    # cognito | auth0 | entra-id | keycloak | okta
+                          # Specs call this "identity provider" — bound here
+
+# ─── Observability ────────────────────────────────────────────────────────────
+
+observability:
+  logs: cloudwatch        # cloudwatch | cloud-logging | azure-monitor | datadog | loki
+  traces: xray            # xray | cloud-trace | azure-monitor | datadog | jaeger
+  metrics: cloudwatch     # cloudwatch | cloud-monitoring | azure-monitor | datadog | prometheus
+
+# ─── Optional overrides ───────────────────────────────────────────────────────
+# Pin specific managed service names to override the per-cloud defaults above.
+# Leave empty ({}) to accept defaults.
+#
+# Example:
+#   service_overrides:
+#     database: rds-aurora-postgres-16   # exact RDS instance class
+#     cache: elasticache-valkey-7        # pin to Valkey instead of Redis
+
 service_overrides: {}
